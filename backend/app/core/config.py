@@ -1,5 +1,6 @@
 """Application configuration via environment variables."""
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,8 +23,15 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:5173/auth/callback"
 
-    # CORS
+    # CORS — accepts a comma-separated string or a JSON array
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: object) -> object:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
 
     # Scraping
     max_concurrent_scrapes: int = 2
