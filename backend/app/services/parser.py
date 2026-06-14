@@ -20,6 +20,20 @@ MESSAGE_BLOCK_SELECTORS = [
 TITLE_SELECTORS = ["h1", ".conversation-title", "title"]
 
 
+def _html_to_markdown(el) -> str:
+    """Convert a BeautifulSoup element's inner HTML to clean Markdown."""
+    try:
+        from markdownify import markdownify
+        inner = el.decode_contents()
+        if not inner.strip():
+            return el.get_text(separator="\n", strip=True)
+        md_text = markdownify(inner, heading_style="ATX", bullets="-", strip=["img", "script", "style"])
+        md_text = re.sub(r"\n{3,}", "\n\n", md_text)
+        return md_text.strip() or el.get_text(separator="\n", strip=True)
+    except Exception:
+        return el.get_text(separator="\n", strip=True)
+
+
 def _extract_code_blocks(text: str) -> tuple[list[dict], bool]:
     matches = re.findall(r"```(\w*)\n(.*?)```", text, re.DOTALL)
     blocks = [{"language": lang or "text", "code": code.strip()} for lang, code in matches]
@@ -64,7 +78,7 @@ def parse_html_to_conversation(html: str, raw_text: str, share_url: str) -> Conv
     if elems:
         prev = None
         for idx, el in enumerate(elems):
-            text = el.get_text(separator="\n", strip=True)
+            text = _html_to_markdown(el)
             if not text:
                 continue
             classes = " ".join(el.get("class", []))
