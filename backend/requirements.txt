@@ -20,7 +20,7 @@ itsdangerous>=2.2.0
 
 # Scraping
 playwright>=1.49.0
-playwright-stealth==0.0.3
+# playwright-stealth removed — no stable API across published versions; user-agent + viewport sufficient for public share pages
 beautifulsoup4>=4.12.0
 
 # Document generation
