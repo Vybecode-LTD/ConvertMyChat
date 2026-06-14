@@ -9,6 +9,7 @@ import re
 from contextlib import asynccontextmanager
 
 from playwright.async_api import async_playwright
+from playwright_stealth import Stealth
 
 from app.core.config import settings
 
@@ -64,6 +65,7 @@ async def scrape_share_page(url: str) -> tuple[str, str]:
                 locale="en-US",
             )
             page = await context.new_page()
+            await Stealth().apply_stealth_async(page)
 
             try:
                 await page.goto(normalized, wait_until="networkidle",
