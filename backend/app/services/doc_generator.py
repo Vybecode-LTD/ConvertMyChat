@@ -130,6 +130,11 @@ def _render_markdown(doc: Document, text: str):
         i += 1
 
 
+def _ai_label(conversation: ConversationData) -> str:
+    platform = str((conversation.metadata or {}).get("platform", "gemini"))
+    return {"chatgpt": "ChatGPT", "gemini": "Gemini"}.get(platform, "Gemini")
+
+
 def generate_docx(conversation: ConversationData) -> bytes:
     doc = Document()
 
@@ -147,8 +152,9 @@ def generate_docx(conversation: ConversationData) -> bytes:
 
     doc.add_paragraph()
 
+    ai = _ai_label(conversation)
     for msg in conversation.messages:
-        label = "User" if msg.role == "user" else "Gemini"
+        label = "User" if msg.role == "user" else ai
         doc.add_heading(label, level=3)
         _render_markdown(doc, msg.content)
         doc.add_paragraph()

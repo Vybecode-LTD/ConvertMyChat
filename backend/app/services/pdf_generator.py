@@ -196,13 +196,16 @@ def generate_pdf(conversation: ConversationData) -> bytes:
     )
     pdf.ln(8)
 
+    platform = str((conversation.metadata or {}).get("platform", "gemini"))
+    ai = {"chatgpt": "ChatGPT", "gemini": "Gemini"}.get(platform, "Gemini")
+
     for msg in conversation.messages:
         if msg.role == "user":
             pdf.set_text_color(30, 100, 180)
         else:
             pdf.set_text_color(232, 68, 10)
         pdf.set_font("Helvetica", "B", 11)
-        pdf.cell(0, 8, "User" if msg.role == "user" else "Gemini", ln=True)
+        pdf.cell(0, 8, "User" if msg.role == "user" else ai, ln=True)
 
         pdf.set_text_color(40, 40, 40)
         _render_markdown_pdf(pdf, msg.content)

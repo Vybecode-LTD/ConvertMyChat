@@ -88,9 +88,9 @@ export default function App() {
           {view === "home" && (
             <>
               <div className="text-center space-y-2">
-                <h2 className="text-3xl sm:text-4xl font-bold text-white">Export any shared Gemini chat</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold text-white">Export any shared AI chat</h2>
                 <p className="text-gray-400 max-w-lg mx-auto text-sm">
-                  Paste a Gemini share link and download as PDF, Word, CSV, or Markdown.
+                  Paste a Gemini or ChatGPT share link and download as PDF, Word, CSV, or Markdown.
                   Tables, JSON, and code blocks are automatically detected and exportable as separate files.
                   {!user && <span className="text-gray-500"> Sign in to save your export history.</span>}
                 </p>

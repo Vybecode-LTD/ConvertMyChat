@@ -11,6 +11,8 @@ def generate_markdown_bytes(conversation: ConversationData) -> bytes:
         f"> **Messages:** {conversation.message_count}", "", "---", "",
     ]
     for msg in conversation.messages:
-        label = "👤 User" if msg.role == "user" else "🤖 Gemini"
+        platform = str((conversation.metadata or {}).get("platform", "gemini"))
+        ai = {"chatgpt": "ChatGPT", "gemini": "Gemini"}.get(platform, "Gemini")
+        label = "👤 User" if msg.role == "user" else f"🤖 {ai}"
         lines.extend([f"## {label}", "", msg.content, ""])
     return "\n".join(lines).encode("utf-8")

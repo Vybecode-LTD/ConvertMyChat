@@ -17,7 +17,7 @@ export function Preview({ conversation, cached }: { conversation: ConversationDa
         {conversation.messages.slice(0, 6).map((m, i) => (
           <div key={i} className="px-5 py-3">
             <span className={`text-xs font-semibold uppercase tracking-wider ${m.role === "user" ? "text-blue-400" : "text-ember"}`}>
-              {m.role === "user" ? "You" : "Gemini"}
+              {m.role === "user" ? "You" : conversation.metadata?.platform === "chatgpt" ? "ChatGPT" : "Gemini"}
             </span>
             <p className="text-sm text-gray-300 line-clamp-3 mt-1 whitespace-pre-wrap">
               {m.content.slice(0, 300)}{m.content.length > 300 ? "..." : ""}
