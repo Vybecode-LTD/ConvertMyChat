@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { login, register, getGoogleLoginUrl } from "@/services/api";
+import { login, register } from "@/services/api";
 
 export function SignInButton() {
   const { user, logout } = useAuth();
@@ -55,15 +55,6 @@ function LoginModal({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const handleGoogle = async () => {
-    try {
-      const { auth_url } = await getGoogleLoginUrl();
-      window.location.href = auth_url;
-    } catch {
-      setError("Google login unavailable");
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
          onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -71,17 +62,6 @@ function LoginModal({ onClose }: { onClose: () => void }) {
         <h3 className="text-lg font-bold text-white mb-4">
           {mode === "login" ? "Sign in" : "Create account"}
         </h3>
-
-        <button onClick={handleGoogle}
-          className="w-full py-2.5 bg-white text-gray-800 rounded-lg font-medium text-sm mb-4 hover:bg-gray-100 transition-colors">
-          Continue with Google
-        </button>
-
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-dark-600" />
-          <span className="text-xs text-gray-500">or</span>
-          <div className="flex-1 h-px bg-dark-600" />
-        </div>
 
         <div className="space-y-3">
           {mode === "register" && (

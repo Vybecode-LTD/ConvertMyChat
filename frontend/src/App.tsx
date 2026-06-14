@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LinkInput } from "@/components/LinkInput";
 import { FormatPicker } from "@/components/FormatPicker";
@@ -8,7 +8,6 @@ import { HistoryView } from "@/components/HistoryView";
 import { AdminPanel } from "@/components/AdminPanel";
 import { EmbeddedContentToggle } from "@/components/EmbeddedContentToggle";
 import { useExport } from "@/hooks/useExport";
-import { googleCallback } from "@/services/api";
 import type { ExportFormat, AppView } from "@/types";
 
 export default function App() {
@@ -25,18 +24,6 @@ export default function App() {
   const [includeTables, setIncludeTables] = useState(true);
   const [includeJson, setIncludeJson] = useState(true);
   const [includeCode, setIncludeCode] = useState(true);
-
-  // Handle Google OAuth callback
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (code) {
-      googleCallback(code, window.location.origin + "/auth/callback")
-        .then((res) => setAuth(res.access_token, res.user))
-        .catch(() => {})
-        .finally(() => window.history.replaceState({}, "", "/"));
-    }
-  }, [setAuth]);
 
   const isExtracting = status === "extracting";
   const isExporting = status === "exporting";

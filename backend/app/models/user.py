@@ -22,8 +22,7 @@ class User(Base):
 
     # Auth
     hashed_password: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    google_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
-    auth_provider: Mapped[str] = mapped_column(String(20), default="email")  # "email" or "google"
+    auth_provider: Mapped[str] = mapped_column(String(20), default="email")
 
     # Roles
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)

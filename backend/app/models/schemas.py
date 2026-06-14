@@ -67,11 +67,6 @@ class AuthResponse(BaseModel):
     user: "UserResponse"
 
 
-class GoogleCallbackRequest(BaseModel):
-    code: str
-    redirect_uri: str | None = None
-
-
 # --- User ---
 
 class UserResponse(BaseModel):

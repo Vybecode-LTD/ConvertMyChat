@@ -80,13 +80,6 @@ export const login = (email: string, password: string) =>
     method: "POST", body: JSON.stringify({ email, password }),
   });
 
-export const getGoogleLoginUrl = () => api<{ auth_url: string }>("/api/auth/google/login");
-
-export const googleCallback = (code: string, redirect_uri?: string) =>
-  api<AuthResponse>("/api/auth/google/callback", {
-    method: "POST", body: JSON.stringify({ code, redirect_uri }),
-  });
-
 export const getMe = () => api<UserData>("/api/auth/me");
 
 // === History ===
