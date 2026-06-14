@@ -72,9 +72,14 @@ def _render_table_pdf(pdf: FPDF, table_lines: list[str]):
             cell_txt = _sanitize(row[c_idx][:50]) if c_idx < len(row) else ""
             pdf.cell(col_w, 6, cell_txt, border=1, fill=is_hdr)
         pdf.ln()
+    pdf.set_x(pdf.l_margin)
     pdf.ln(3)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(40, 40, 40)
+
+
+def _reset_x(pdf: FPDF):
+    pdf.set_x(pdf.l_margin)
 
 
 def _render_markdown_pdf(pdf: FPDF, text: str):
@@ -94,6 +99,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
             pdf.set_fill_color(245, 245, 245)
             pdf.set_text_color(50, 50, 50)
             for cl in code_lines:
+                _reset_x(pdf)
                 pdf.multi_cell(0, 4.5, _sanitize(cl), fill=True)
             pdf.ln(2)
             pdf.set_font("Helvetica", "", 10)
@@ -108,6 +114,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
                 table_lines.append(lines[i])
                 i += 1
             _render_table_pdf(pdf, table_lines)
+            _reset_x(pdf)
             continue
 
         # ATX heading
@@ -117,6 +124,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
             sizes = {1: 16, 2: 14, 3: 12, 4: 11, 5: 10, 6: 10}
             pdf.set_font("Helvetica", "B", sizes.get(level, 11))
             pdf.set_text_color(30, 30, 30)
+            _reset_x(pdf)
             pdf.multi_cell(0, 7, _sanitize(_strip_inline_md(m.group(2))))
             pdf.set_font("Helvetica", "", 10)
             pdf.set_text_color(40, 40, 40)
@@ -135,6 +143,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
         m = re.match(r"^[-*+]\s+(.+)$", line)
         if m:
             pdf.set_font("Helvetica", "", 10)
+            _reset_x(pdf)
             pdf.multi_cell(0, 5, _sanitize("  * " + _strip_inline_md(m.group(1))))
             i += 1
             continue
@@ -143,6 +152,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
         m = re.match(r"^(\d+)\.\s+(.+)$", line)
         if m:
             pdf.set_font("Helvetica", "", 10)
+            _reset_x(pdf)
             pdf.multi_cell(0, 5, _sanitize(f"  {m.group(1)}. " + _strip_inline_md(m.group(2))))
             i += 1
             continue
@@ -156,6 +166,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
         # Regular paragraph
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(40, 40, 40)
+        _reset_x(pdf)
         pdf.multi_cell(0, 5, _sanitize(_strip_inline_md(line)))
         i += 1
 
@@ -168,6 +179,7 @@ def generate_pdf(conversation: ConversationData) -> bytes:
 
     pdf.set_font("Helvetica", "B", 20)
     pdf.set_text_color(30, 30, 30)
+    pdf.set_x(pdf.l_margin)
     pdf.multi_cell(0, 12, _sanitize(conversation.title))
     pdf.ln(2)
 
