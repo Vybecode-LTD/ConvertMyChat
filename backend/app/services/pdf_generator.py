@@ -26,14 +26,18 @@ class ConvoPDF(FPDF):
 
 
 def _sanitize(text: str) -> str:
-    for old, new in {
-        "‘": "'", "’": "'",
-        "“": '"', "”": '"',
-        "–": "-", "—": "--",
-        "…": "...", " ": " ",
-    }.items():
+    replacements = {
+        "‘": "'", "’": "'",   # curly single quotes
+        "“": '"', "”": '"',   # curly double quotes
+        "–": "-", "—": "--",  # en/em dash
+        "…": "...",                # ellipsis
+        " ": " ",                  # non-breaking space
+        "•": "*", "⁃": "*", "●": "*",  # bullet variants
+    }
+    for old, new in replacements.items():
         text = text.replace(old, new)
-    return "".join(ch for ch in text if ord(ch) < 0x10000)
+    # fpdf2 built-in fonts are Latin-1 — drop anything outside that range
+    return text.encode("latin-1", errors="ignore").decode("latin-1")
 
 
 def _strip_inline_md(text: str) -> str:
@@ -57,8 +61,12 @@ def _render_table_pdf(pdf: FPDF, table_lines: list[str]):
     col_w = (pdf.w - pdf.l_margin - pdf.r_margin) / ncols
     for r_idx, row in enumerate(rows):
         is_hdr = r_idx == 0
-        pdf.set_font("Helvetica", "B" if is_hdr else "", 8)
-        pdf.set_fill_color(220, 220, 220) if is_hdr else pdf.set_fill_color(255, 255, 255)
+        if is_hdr:
+            pdf.set_fill_color(220, 220, 220)
+            pdf.set_font("Helvetica", "B", 8)
+        else:
+            pdf.set_fill_color(255, 255, 255)
+            pdf.set_font("Helvetica", "", 8)
         pdf.set_text_color(30, 30, 30)
         for c_idx in range(ncols):
             cell_txt = _sanitize(row[c_idx][:50]) if c_idx < len(row) else ""
@@ -127,7 +135,7 @@ def _render_markdown_pdf(pdf: FPDF, text: str):
         m = re.match(r"^[-*+]\s+(.+)$", line)
         if m:
             pdf.set_font("Helvetica", "", 10)
-            pdf.multi_cell(0, 5, _sanitize("  • " + _strip_inline_md(m.group(1))))
+            pdf.multi_cell(0, 5, _sanitize("  * " + _strip_inline_md(m.group(1))))
             i += 1
             continue
 
@@ -165,11 +173,13 @@ def generate_pdf(conversation: ConversationData) -> bytes:
 
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(0, 5, f"Source: {conversation.share_url}", ln=True)
+    pdf.cell(0, 5, _sanitize(f"Source: {conversation.share_url}"), ln=True)
     pdf.cell(
         0, 5,
-        f"Extracted: {conversation.extracted_at.strftime('%Y-%m-%d %H:%M UTC')} · "
-        f"{conversation.message_count} messages",
+        _sanitize(
+            f"Extracted: {conversation.extracted_at.strftime('%Y-%m-%d %H:%M UTC')} - "
+            f"{conversation.message_count} messages"
+        ),
         ln=True,
     )
     pdf.ln(8)

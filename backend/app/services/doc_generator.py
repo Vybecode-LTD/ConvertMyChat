@@ -35,7 +35,10 @@ def _add_table(doc: Document, rows: list[list[str]]):
         return
     ncols = max(len(r) for r in rows)
     table = doc.add_table(rows=len(rows), cols=ncols)
-    table.style = "Table Grid"
+    try:
+        table.style = "Table Grid"
+    except KeyError:
+        pass
     for r_idx, row_data in enumerate(rows):
         tr = table.rows[r_idx]
         for c_idx in range(ncols):

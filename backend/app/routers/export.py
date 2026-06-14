@@ -7,7 +7,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -186,17 +186,19 @@ async def export_bundle(
     """
     convo = body.conversation
 
-    # Re-extract embedded content from the conversation
-    embedded = extract_embedded_content(convo.messages)
-
-    bundle_bytes = await generate_bundle(
-        conversation=convo,
-        main_format=body.format,
-        embedded_content=embedded,
-        include_tables=body.include_tables,
-        include_json=body.include_json,
-        include_code=body.include_code,
-    )
+    try:
+        embedded = extract_embedded_content(convo.messages)
+        bundle_bytes = await generate_bundle(
+            conversation=convo,
+            main_format=body.format,
+            embedded_content=embedded,
+            include_tables=body.include_tables,
+            include_json=body.include_json,
+            include_code=body.include_code,
+        )
+    except Exception as e:
+        logger.exception("Bundle export failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Bundle generation failed: {e}")
 
     # Auto-save to history if logged in
     if user:
