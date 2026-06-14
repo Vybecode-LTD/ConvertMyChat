@@ -42,7 +42,10 @@ export async function exportBundle(
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error("Bundle export failed");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Bundle export failed" }));
+    throw new Error(err.detail || `HTTP ${res.status}: bundle export failed`);
+  }
   return { blob: await res.blob(), filename: res.headers.get("X-Filename") || "export_bundle.zip" };
 }
 
