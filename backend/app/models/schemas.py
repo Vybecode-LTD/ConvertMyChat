@@ -13,6 +13,7 @@ class ExportFormat(str, Enum):
     DOCX = "docx"
     CSV = "csv"
     MARKDOWN = "markdown"
+    HTML = "html"
 
 
 class ConversationMessage(BaseModel):
@@ -167,6 +168,21 @@ class HistoryItem(BaseModel):
 class HistoryListResponse(BaseModel):
     items: list[HistoryItem]
     total: int
+
+
+# --- Share ---
+
+class ShareCreateRequest(BaseModel):
+    conversation: ConversationData
+
+
+class ShareResponse(BaseModel):
+    id: str
+    share_url: str
+    title: str
+    message_count: int
+    created_at: datetime
+    view_url: str
 
 
 # --- Health ---

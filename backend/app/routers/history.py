@@ -19,6 +19,7 @@ from app.services.doc_generator import generate_docx
 from app.services.pdf_generator import generate_pdf
 from app.services.csv_generator import generate_csv_bytes
 from app.services.md_generator import generate_markdown_bytes
+from app.services.html_generator import generate_html_bytes
 from app.middleware.auth import get_current_user_required
 
 router = APIRouter()
@@ -69,15 +70,19 @@ async def reexport(
     generators = {
         ExportFormat.DOCX: generate_docx, ExportFormat.PDF: generate_pdf,
         ExportFormat.CSV: generate_csv_bytes, ExportFormat.MARKDOWN: generate_markdown_bytes,
+        ExportFormat.HTML: generate_html_bytes,
     }
     file_bytes = await asyncio.to_thread(generators[format], convo)
 
     entry.last_export_format = format.value
     await db.commit()
 
-    ct = {"pdf": "application/pdf", "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "csv": "text/csv", "markdown": "text/markdown"}
-    ext = {"pdf": "pdf", "docx": "docx", "csv": "csv", "markdown": "md"}
+    ct = {
+        "pdf": "application/pdf",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "csv": "text/csv", "markdown": "text/markdown", "html": "text/html",
+    }
+    ext = {"pdf": "pdf", "docx": "docx", "csv": "csv", "markdown": "md", "html": "html"}
 
     fn = f"{entry.title[:50].replace(' ', '_')}_{format.value}.{ext[format.value]}"
     return Response(content=file_bytes, media_type=ct[format.value],

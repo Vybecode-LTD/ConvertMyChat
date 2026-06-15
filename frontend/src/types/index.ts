@@ -1,4 +1,4 @@
-export type ExportFormat = "pdf" | "docx" | "csv" | "markdown";
+export type ExportFormat = "pdf" | "docx" | "csv" | "markdown" | "html";
 export type AppStatus = "idle" | "validating" | "extracting" | "extracted" | "exporting" | "done" | "error";
 export type AppView = "home" | "history" | "admin";
 
@@ -101,9 +101,18 @@ export interface AdminStats {
   cached_conversations: number;
 }
 
+export interface ShareResponse {
+  id: string;
+  share_url: string;
+  title: string;
+  message_count: number;
+  created_at: string;
+  view_url: string;
+}
+
 export const FORMAT_LABELS: Record<ExportFormat, string> = {
-  pdf: "PDF", docx: "Word (DOCX)", csv: "CSV", markdown: "Markdown",
+  pdf: "PDF", docx: "Word (DOCX)", csv: "CSV", markdown: "Markdown", html: "HTML",
 };
 export const FORMAT_ICONS: Record<ExportFormat, string> = {
-  pdf: "📄", docx: "📝", csv: "📊", markdown: "📋",
+  pdf: "📄", docx: "📝", csv: "📊", markdown: "📋", html: "🌐",
 };

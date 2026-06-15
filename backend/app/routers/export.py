@@ -24,10 +24,13 @@ from app.services.doc_generator import generate_docx
 from app.services.pdf_generator import generate_pdf
 from app.services.csv_generator import generate_csv_bytes
 from app.services.md_generator import generate_markdown_bytes
+from app.services.html_generator import generate_html_bytes
+from app.services.ai_summary import generate_summary
 from app.services.content_extractor import extract_embedded_content, ContentType
 from app.services.bundle_generator import generate_bundle
 from app.utils.cache import get_cached, set_cached
 from app.middleware.auth import get_current_user_optional
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,9 +40,11 @@ CONTENT_TYPES = {
     ExportFormat.DOCX: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ExportFormat.CSV: "text/csv",
     ExportFormat.MARKDOWN: "text/markdown",
+    ExportFormat.HTML: "text/html",
 }
 EXTENSIONS = {ExportFormat.PDF: "pdf", ExportFormat.DOCX: "docx",
-              ExportFormat.CSV: "csv", ExportFormat.MARKDOWN: "md"}
+              ExportFormat.CSV: "csv", ExportFormat.MARKDOWN: "md",
+              ExportFormat.HTML: "html"}
 
 
 def _filename(title: str, fmt: ExportFormat) -> str:
@@ -78,11 +83,18 @@ async def export(
 ):
     convo, fmt = body.conversation, body.format
 
+    # Inject AI summary into metadata if configured
+    if settings.anthropic_api_key and not (convo.metadata or {}).get("summary"):
+        summary = await generate_summary(convo, settings.anthropic_api_key)
+        if summary:
+            convo.metadata = {**(convo.metadata or {}), "summary": summary}
+
     generators = {
         ExportFormat.DOCX: generate_docx,
         ExportFormat.PDF: generate_pdf,
         ExportFormat.CSV: generate_csv_bytes,
         ExportFormat.MARKDOWN: generate_markdown_bytes,
+        ExportFormat.HTML: generate_html_bytes,
     }
     file_bytes = await asyncio.to_thread(generators[fmt], convo)
 
@@ -185,6 +197,12 @@ async def export_bundle(
     - MANIFEST.md listing everything in the bundle
     """
     convo = body.conversation
+
+    # Inject AI summary into metadata if configured
+    if settings.anthropic_api_key and not (convo.metadata or {}).get("summary"):
+        summary = await generate_summary(convo, settings.anthropic_api_key)
+        if summary:
+            convo.metadata = {**(convo.metadata or {}), "summary": summary}
 
     try:
         embedded = extract_embedded_content(convo.messages)

@@ -34,6 +34,7 @@ class EmbeddedContent(BaseModel):
     parsed_data: dict | list | str = Field(description="Parsed/structured data")
     suggested_filename: str
     language: str | None = None  # For code blocks
+    is_algorithm: bool = False  # True if the code block looks like a function/algorithm
     row_count: int | None = None  # For tables
     column_count: int | None = None  # For tables
     message_index: int = Field(description="Which message this came from")
@@ -174,6 +175,24 @@ def _detect_json(text: str, msg_index: int, msg_role: str, counter: list[int]) -
     return results
 
 
+_SCRIPT_LANGS = {"bash", "shell", "sh", "zsh", "cmd", "powershell", "ps1", "text", "txt", ""}
+_ALGO_PATTERNS = re.compile(
+    r'\b(def |function |func |class |public |private |protected |static |async def |'
+    r'sub |procedure |algorithm |return |lambda |=>|->)\b',
+    re.IGNORECASE,
+)
+
+
+def _is_algorithm(code: str, lang: str) -> bool:
+    """Return True if this code block looks like a function, class, or algorithm."""
+    if lang in _SCRIPT_LANGS:
+        return False
+    lines = [l for l in code.split("\n") if l.strip()]
+    if len(lines) < 4:
+        return False
+    return bool(_ALGO_PATTERNS.search(code))
+
+
 def _detect_code(text: str, msg_index: int, msg_role: str, counter: list[int]) -> list[EmbeddedContent]:
     """Find fenced code blocks (excluding JSON, which is handled separately)."""
     results = []
@@ -190,11 +209,12 @@ def _detect_code(text: str, msg_index: int, msg_role: str, counter: list[int]) -
 
         counter[0] += 1
         ext = LANG_EXTENSIONS.get(lang, ".txt")
-        # Generate a descriptive filename
         if lang:
             filename = f"snippet_{counter[0]}{ext}"
         else:
             filename = f"snippet_{counter[0]}.txt"
+
+        algo = _is_algorithm(code, lang)
 
         results.append(EmbeddedContent(
             content_type=ContentType.CODE,
@@ -202,6 +222,7 @@ def _detect_code(text: str, msg_index: int, msg_role: str, counter: list[int]) -
             parsed_data=code,
             suggested_filename=filename,
             language=lang or "text",
+            is_algorithm=algo,
             message_index=msg_index,
             message_role=msg_role,
         ))

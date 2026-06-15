@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import engine
 from app.models import Base
-from app.routers import health, export, auth, history, admin
+from app.routers import health, export, auth, history, admin, share
 
 logging.basicConfig(
     level=logging.DEBUG if settings.debug else logging.INFO,
@@ -54,6 +54,7 @@ app.include_router(export.router, prefix="/api", tags=["export"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(history.router, prefix="/api/history", tags=["history"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(share.router, prefix="/api", tags=["share"])
 
 # Serve React SPA in production (Docker build copies frontend/dist → /app/static)
 _static_dir = Path(__file__).parent.parent / "static"

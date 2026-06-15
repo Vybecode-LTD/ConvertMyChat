@@ -7,11 +7,24 @@ import { SignInButton } from "@/components/SignInButton";
 import { HistoryView } from "@/components/HistoryView";
 import { AdminPanel } from "@/components/AdminPanel";
 import { EmbeddedContentToggle } from "@/components/EmbeddedContentToggle";
+import { ShareModal } from "@/components/ShareModal";
+import { ShareView } from "@/components/ShareView";
 import { useExport } from "@/hooks/useExport";
 import type { ExportFormat, AppView } from "@/types";
 
+function getShareId(): string | null {
+  const m = window.location.pathname.match(/^\/v\/([a-z0-9]+)$/);
+  return m ? m[1] : null;
+}
+
 export default function App() {
-  const { user, setAuth } = useAuth();
+  const shareId = getShareId();
+  if (shareId) return <ShareView shareId={shareId} />;
+  return <MainApp />;
+}
+
+function MainApp() {
+  const { user } = useAuth();
   const {
     status, error, conversation, cached,
     embeddedContent, contentSummary,
@@ -19,6 +32,7 @@ export default function App() {
   } = useExport();
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>("pdf");
   const [view, setView] = useState<AppView>("home");
+  const [showShare, setShowShare] = useState(false);
 
   // Bundle toggles
   const [includeTables, setIncludeTables] = useState(true);
@@ -77,7 +91,7 @@ export default function App() {
               <div className="text-center space-y-2">
                 <h2 className="text-3xl sm:text-4xl font-bold text-white">Export any shared AI chat</h2>
                 <p className="text-gray-400 max-w-lg mx-auto text-sm">
-                  Paste a Gemini or ChatGPT share link and download as PDF, Word, CSV, or Markdown.
+                  Paste a Gemini or ChatGPT share link and download as PDF, Word, CSV, Markdown, or HTML.
                   Tables, JSON, and code blocks are automatically detected and exportable as separate files.
                   {!user && <span className="text-gray-500"> Sign in to save your export history.</span>}
                 </p>
@@ -107,7 +121,6 @@ export default function App() {
                 <>
                   <Preview conversation={conversation} cached={cached} />
 
-                  {/* Embedded content detection */}
                   {hasEmbedded && (
                     <EmbeddedContentToggle
                       summary={contentSummary}
@@ -152,10 +165,19 @@ export default function App() {
                       </p>
                     )}
 
+                    <button onClick={() => setShowShare(true)}
+                      className="text-xs text-gray-400 hover:text-ember border border-dark-600 px-4 py-1.5 rounded-lg hover:border-ember transition-colors">
+                      Share as pretty link
+                    </button>
+
                     <button onClick={reset} className="block mx-auto text-xs text-gray-500 hover:text-gray-300">
                       Extract a different conversation
                     </button>
                   </div>
+
+                  {showShare && (
+                    <ShareModal conversation={conversation} onClose={() => setShowShare(false)} />
+                  )}
                 </>
               )}
             </>

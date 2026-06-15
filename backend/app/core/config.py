@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Admin
     admin_email: str = ""  # First admin account email
 
+    # AI Summary (Anthropic)
+    anthropic_api_key: str = ""
+
     @property
     def async_database_url(self) -> str:
         """Normalize DATABASE_URL for asyncpg.

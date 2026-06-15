@@ -1,7 +1,7 @@
 import type {
   ExtractResponse, ExportRequest, ConversationData, ExportFormat,
   AuthResponse, UserData, HistoryItem, AdminStats,
-  ExtractResponseV2, BundleExportRequest,
+  ExtractResponseV2, BundleExportRequest, ShareResponse,
 } from "@/types";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -55,9 +55,17 @@ export async function exportConversation(convo: ConversationData, format: Export
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ conversation: convo, format }),
   });
-  if (!res.ok) throw new Error("Export failed");
-  return { blob: await res.blob(), filename: res.headers.get("X-Filename") || `export.${format}` };
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Export failed" }));
+    throw new Error(err.detail || "Export failed");
+  }
+  const ext = format === "markdown" ? "md" : format;
+  return { blob: await res.blob(), filename: res.headers.get("X-Filename") || `export.${ext}` };
 }
+
+// === Share ===
+export const createShare = (convo: ConversationData) =>
+  api<ShareResponse>("/api/share", { method: "POST", body: JSON.stringify({ conversation: convo }) });
 
 export function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement("a");
@@ -94,7 +102,8 @@ export async function reexportHistoryItem(id: string, format: ExportFormat) {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error("Re-export failed");
-  return { blob: await res.blob(), filename: `reexport.${format === "markdown" ? "md" : format}` };
+  const ext = format === "markdown" ? "md" : format;
+  return { blob: await res.blob(), filename: `reexport.${ext}` };
 }
 
 // === Admin ===

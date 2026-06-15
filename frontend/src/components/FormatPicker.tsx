@@ -1,7 +1,7 @@
 import type { ExportFormat } from "@/types";
 import { FORMAT_LABELS, FORMAT_ICONS } from "@/types";
 
-const FMTS: ExportFormat[] = ["pdf", "docx", "csv", "markdown"];
+const FMTS: ExportFormat[] = ["pdf", "docx", "csv", "markdown", "html"];
 
 export function FormatPicker({ selected, onSelect, disabled }: {
   selected: ExportFormat; onSelect: (f: ExportFormat) => void; disabled?: boolean;
