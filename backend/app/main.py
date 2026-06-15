@@ -6,6 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
@@ -57,6 +58,13 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(share.router, prefix="/api", tags=["share"])
 
 # Serve React SPA in production (Docker build copies frontend/dist → /app/static)
+# Uses a catch-all route instead of StaticFiles mount so that deep links like
+# /v/{id} fall back to index.html (StaticFiles html=True only covers directory paths).
 _static_dir = Path(__file__).parent.parent / "static"
 if _static_dir.exists():
-    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="static")
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str):
+        file_path = _static_dir / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(_static_dir / "index.html"))
